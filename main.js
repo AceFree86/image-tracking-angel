@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const mindarThree = new MindARThree({
     container: document.querySelector("#container"),
     imageTargetSrc:
-      "https://acefree86.github.io/image-tracking/assets/Image/targetsA.mind",
+      "https://acefree86.github.io/image-tracking-angel/assets/Image/targets.mind",
     filterMinCF: 0.1, // Reduce jittering (default is 0.001)
     filterBeta: 10, // Reduce delay (default is 1000)
     warmupTolerance: 1, // Faster target detection (default is 5)
@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load the GLTF model
   const url =
-    "https://acefree86.github.io/image-tracking/assets/models/Cake.glb";
+    "https://acefree86.github.io/image-tracking-angel/assets/models/Angel.glb";
   const loader = new GLTFLoader();
 
   loader.load(
