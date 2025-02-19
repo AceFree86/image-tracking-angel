@@ -19,7 +19,6 @@ const startButton = document.querySelector("#startButton");
 const stopButton = document.querySelector("#stopButton");
 const errorDisplay = document.querySelector("#error-message");
 
-let mindarThree = null;
 let renderer, scene, camera;
 let activeTargetIndex = -1;
 let mixer = null; // Animation mixer
@@ -64,13 +63,13 @@ const loadModel = async (group) => {
 const startTracking = async () => {
   for (let i = 0; i < imageTargetSrcList.length; i++) {
     try {
-      mindarThree = new MindARThree({
-        container: container,
+      const mindarThree = new MindARThree({
+        container: document.querySelector("#container"),
         imageTargetSrc: imageTargetSrcList[i],
-        filterMinCF: 0.1,
-        filterBeta: 10,
-        warmupTolerance: 1,
-        missTolerance: 1,
+        filterMinCF: 0.1, // Reduce jittering (default is 0.001)
+        filterBeta: 10, // Reduce delay (default is 1000)
+        warmupTolerance: 1, // Faster target detection (default is 5)
+        missTolerance: 1, // Faster target lost detection (default is 5)
       });
 
       ({ renderer, scene, camera } = mindarThree);
