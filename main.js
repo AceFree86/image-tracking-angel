@@ -35,6 +35,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const groupM = new THREE.Group();
   let mixer; // Animation Mixer
 
+  // Get the anchor index from the URL query parameter (default to 0 if not provided)
+  const urlParams = new URLSearchParams(window.location.search);
+  const anchorIndex = parseInt(urlParams.get("index")) || 0;
+
   // Load the GLTF model
   const url =
     "https://acefree86.github.io/image-tracking-angel/assets/models/Angel.glb";
@@ -76,9 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   );
 
- const anchor = mindarThree.addAnchor(1);
- anchor.group.add(groupM);
-
+  const anchor = mindarThree.addAnchor(anchorIndex);
+  anchor.group.add(groupM);
 
   // Start AR
   const start = async () => {
