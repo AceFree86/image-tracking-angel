@@ -2,117 +2,127 @@ import * as THREE from "three";
 import { MindARThree } from "mindar-image-three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  const mindarThree = new MindARThree({
-    container: document.querySelector("#container"),
-    imageTargetSrc:
-      "https://acefree86.github.io/image-tracking-angel/assets/Image/targets.mind",
-    filterMinCF: 0.1, // Reduce jittering (default is 0.001)
-    filterBeta: 10, // Reduce delay (default is 1000)
-    warmupTolerance: 1, // Faster target detection (default is 5)
-    missTolerance: 1, // Faster target lost detection (default is 5)
-  });
 
-  const { renderer, scene, camera } = mindarThree;
+const imageTargetSrcList = [
+  "https://acefree86.github.io/image-tracking-angel/assets/Image/targets.mind",
+  "https://acefree86.github.io/image-tracking-angel/assets/Image/targets1.mind",
+  "https://acefree86.github.io/image-tracking-angel/assets/Image/targets2.mind",
+  "https://acefree86.github.io/image-tracking-angel/assets/Image/targets3.mind",
+  "https://acefree86.github.io/image-tracking-angel/assets/Image/targets4.mind",
+  "https://acefree86.github.io/image-tracking-angel/assets/Image/targets5.mind",
+  "https://acefree86.github.io/image-tracking-angel/assets/Image/targets6.mind",
+  "https://acefree86.github.io/image-tracking-angel/assets/Image/targets7.mind"
+];
 
-  const startButton = document.querySelector("#startButton");
-  const errorDisplay = document.querySelector("#error-message");
-  let isRunning = false;
+const container = document.querySelector("#container");
+const startButton = document.querySelector("#startButton");
+const stopButton = document.querySelector("#stopButton");
+const errorDisplay = document.querySelector("#error-message");
 
-  // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-  scene.add(ambientLight);
+let mindarThree = null;
+let renderer, scene, camera;
+let activeTargetIndex = -1;
+let mixer = null; // Animation mixer
 
-  const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.5);
-  directionalLight1.position.set(5, 5, 5);
-  scene.add(directionalLight1);
-
-  const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-  directionalLight2.position.set(-5, -5, 5);
-  scene.add(directionalLight2);
-
-  const groupM = new THREE.Group();
-  let mixer; // Animation Mixer
-
-  // Load the GLTF model
+const loadModel = async (group) => {
+  const loader = new GLTFLoader();
   const url =
     "https://acefree86.github.io/image-tracking-angel/assets/models/Angel.glb";
-  const loader = new GLTFLoader();
 
-  loader.load(
-    url,
-    (gltf) => {
-      const model = gltf.scene;
-      model.position.set(0, 0, 0);
-      model.rotation.set(0, 0, 0); // Reset rotation
-      model.scale.set(2, 2, 2);
-      groupM.add(model);
+  return new Promise((resolve, reject) => {
+    loader.load(
+      url,
+      (gltf) => {
+        const model = gltf.scene;
+        model.position.set(0, 0, 0);
+        model.scale.set(2, 2, 2);
+        group.add(model);
 
-      // Initialize Animation Mixer
-      mixer = new THREE.AnimationMixer(model);
-      if (gltf.animations.length > 0) {
-        const action = mixer.clipAction(gltf.animations[0]); // Play first animation
-        action.play();
+        mixer = new THREE.AnimationMixer(model);
+        if (gltf.animations.length > 0) {
+          const action = mixer.clipAction(gltf.animations[0]);
+          action.play();
+        }
+
+        resolve();
+      },
+      (xhr) => {
+        if (xhr.total > 0) {
+          console.log(
+            `Model ${Math.round((xhr.loaded / xhr.total) * 100)}% loaded`
+          );
+        }
+      },
+      (error) => {
+        console.error("GLTF Load Error:", error);
+        reject(error);
       }
-    },
-    (xhr) => {
-      if (errorDisplay) {
-        errorDisplay.textContent = "loaded";
-        errorDisplay.style.color = "blue";
-        errorDisplay.style.fontSize = "15px";
-      }
-      console.log(
-        `Model ${Math.round((xhr.loaded / xhr.total) * 100)}% loaded`
+    );
+  });
+};
+
+const startTracking = async () => {
+  for (let i = 0; i < imageTargetSrcList.length; i++) {
+    try {
+      mindarThree = new MindARThree({
+        container: container,
+        imageTargetSrc: imageTargetSrcList[i],
+        filterMinCF: 0.1,
+        filterBeta: 10,
+        warmupTolerance: 1,
+        missTolerance: 1,
+      });
+
+      ({ renderer, scene, camera } = mindarThree);
+
+      // Add lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      directionalLight.position.set(5, 5, 5);
+      scene.add(directionalLight);
+
+      const anchor = mindarThree.addAnchor(0);
+      const groupM = new THREE.Group();
+      anchor.group.add(groupM);
+
+      await loadModel(groupM); // Load the 3D model into the anchor
+
+      await mindarThree.start();
+      activeTargetIndex = i;
+      console.log(`Tracking started with target: ${imageTargetSrcList[i]}`);
+
+      renderer.setAnimationLoop(() => {
+        if (mixer) mixer.update(0.016); // Update animation
+        renderer.render(scene, camera);
+      });
+
+      break; // Stop after finding a valid target
+    } catch (error) {
+      console.warn(
+        `Failed to start tracking with target: ${imageTargetSrcList[i]}`,
+        error
       );
-    },
-    (error) => {
-      if (errorDisplay) {
-        errorDisplay.textContent = "Error";
-        errorDisplay.style.color = "red";
-        errorDisplay.style.fontSize = "15px";
-        console.error(`Error: ${error.message}`);
-      }
     }
-  );
+  }
+};
 
-  const anchor = mindarThree.addAnchor(0);
-  anchor.group.add(groupM);
+startButton.addEventListener("click", startTracking);
 
-  // Start AR
-  const start = async () => {
-    await mindarThree.start();
-    renderer.setAnimationLoop(() => {
-      if (mixer) mixer.update(0.016); // Update animation
-      renderer.render(scene, camera);
-    });
-    isRunning = true;
-    startButton.textContent = "Стоп";
-    errorDisplay.style.display = "none";
-  };
-
-  // Stop AR
-  const stop = () => {
+stopButton.addEventListener("click", () => {
+  if (mindarThree) {
     mindarThree.stop();
-    renderer.setAnimationLoop(null);
-    isRunning = false;
-    startButton.textContent = "Старт";
-  };
-
-  // Add an event listener for visibility change
-  document.addEventListener("visibilitychange", () => {
-    location.reload();
-  });
-
-  // Toggle AR on Button Click
-  startButton.addEventListener("click", () => {
-    if (startButton) {
-      if (isRunning) {
-        stop();
-      } else {
-        start();
-      }
-    } else {
-      console.error("startButton button not found!");
+    if (renderer) {
+      renderer.setAnimationLoop(null);
     }
-  });
+    console.log("Tracking stopped.");
+  }
+});
+
+// Handle page visibility changes
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && mindarThree) {
+    mindarThree.stop();
+    console.log("Tracking stopped due to page visibility change.");
+  }
 });
