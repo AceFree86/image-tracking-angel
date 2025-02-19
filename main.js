@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   scene.add(directionalLight2);
 
   const groupM = new THREE.Group();
+  let mixer; // Animation Mixer
 
   // Load the GLTF model
   const url =
@@ -46,6 +47,13 @@ document.addEventListener("DOMContentLoaded", () => {
       model.rotation.set(0, 0, 0); // Reset rotation
       model.scale.set(1, 1, 1);
       groupM.add(model);
+
+      // Initialize Animation Mixer
+      mixer = new THREE.AnimationMixer(model);
+      if (gltf.animations.length > 0) {
+        const action = mixer.clipAction(gltf.animations[0]); // Play first animation
+        action.play();
+      }
     },
     (xhr) => {
       if (errorDisplay) {
@@ -74,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const start = async () => {
     await mindarThree.start();
     renderer.setAnimationLoop(() => {
+      if (mixer) mixer.update(0.016); // Update animation
       renderer.render(scene, camera);
     });
     isRunning = true;
