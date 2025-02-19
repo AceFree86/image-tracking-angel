@@ -76,12 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   );
 
-  // Add multiple anchors based on image targets
-  for (let i = 0; i < 8; i++) {
-    const anchor = mindarThree.addAnchor(i); // Create an anchor for each target
-    const groupClone = groupM.clone(true); // Deep clone the model group
-    anchor.group.add(groupClone); // Attach cloned model to each anchor
-  }
+ const anchor = mindarThree.addAnchor(1);
+ anchor.group.add(groupM);
+
 
   // Start AR
   const start = async () => {
