@@ -76,11 +76,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   );
 
-  // Add multiple anchors based on image targets
-  for (let i = 0; i < 8; i++) {
-    const anchor = mindarThree.addAnchor(i);
-    anchor.group.add(groupM);
-  }
+  const anchor = mindarThree.addAnchor(0);
+  anchor.group.add(groupM);
+
+  const anchor_1 = mindarThree.addAnchor(1);
+  anchor_1.group.add(groupM);
+
+  const anchor_2 = mindarThree.addAnchor(2);
+  anchor_2.group.add(groupM);
+
+  const anchor_3 = mindarThree.addAnchor(3);
+  anchor_3.group.add(groupM);
+
+  const anchor_4 = mindarThree.addAnchor(4);
+  anchor_4.group.add(groupM);
 
   // Start AR
   const start = async () => {
