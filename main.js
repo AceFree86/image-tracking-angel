@@ -2,7 +2,6 @@ import * as THREE from "three";
 import { MindARThree } from "mindar-image-three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-
 document.addEventListener("DOMContentLoaded", () => {
   const mindarThree = new MindARThree({
     container: document.querySelector("#container"),
@@ -16,10 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const { renderer, scene, camera } = mindarThree;
 
+  const boxAnimashen = document.querySelector(".box");
   const startButton = document.querySelector("#startButton");
   const errorDisplay = document.querySelector("#error-message");
   let isRunning = false;
 
+  // Initially, show only the animation box
+  startButton.style.display = "none";
+  startButton.textContent = ""; 
+  
   // Lighting
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
@@ -62,21 +66,23 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     (xhr) => {
       if (errorDisplay) {
-        errorDisplay.textContent = "loaded";
+        boxAnimashen.style.display = "none";
+        startButton.style.display = "block";
+        startButton.textContent = "Старт";
+        errorDisplay.textContent = "L";
         errorDisplay.style.color = "blue";
-        errorDisplay.style.fontSize = "15px";
+        errorDisplay.style.fontSize = "20px";
       }
-      console.log(
-        `Model ${Math.round((xhr.loaded / xhr.total) * 100)}% loaded`
-      );
+      //console.log(`Model ${Math.round((xhr.loaded / xhr.total) * 100)}% loaded`);
     },
     (error) => {
       if (errorDisplay) {
-        errorDisplay.textContent = "Error";
+        boxAnimashen.style.display = "none";
+        errorDisplay.textContent = "E";
         errorDisplay.style.color = "red";
-        errorDisplay.style.fontSize = "15px";
-        console.error(`Error: ${error.message}`);
+        errorDisplay.style.fontSize = "20px";
       }
+      //console.error(`Error: ${error.message}`);
     }
   );
 
@@ -107,6 +113,13 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("visibilitychange", () => {
     location.reload();
   });
+
+   document.addEventListener("contextmenu", (e) => e.preventDefault());
+   document.addEventListener("keydown", (e) => {
+     if (e.ctrlKey && (e.key === "u" || e.key === "s" || e.key === "j")) {
+       e.preventDefault();
+     }
+   });
 
   // Toggle AR on Button Click
   startButton.addEventListener("click", () => {
