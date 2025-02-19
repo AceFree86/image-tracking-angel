@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const model = gltf.scene;
       model.position.set(0, 0, 0);
       model.rotation.set(0, 0, 0); // Reset rotation
-      model.scale.set(1, 1, 1);
+      model.scale.set(2, 2, 2);
       groupM.add(model);
 
       // Initialize Animation Mixer
